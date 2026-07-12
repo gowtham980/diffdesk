@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "diffdesk"
+version = "0.1.0"
+description = "Local-first web app for reviewing AI-authored code changes with multi-panel diffs, checklists, findings, and ship decisions."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Gowtham Krishnateja", email = "gowtham980@example.com" }
+]
+keywords = [
+    "code-review",
+    "diff",
+    "ai",
+    "local-first",
+    "developer-tools",
+    "fastapi",
+    "checklist",
+    "web-app",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Version Control",
+]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "jinja2>=3.1.3",
+    "python-multipart>=0.0.9",
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+    "pydantic>=2.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "httpx>=0.27.0",
+    "ruff>=0.3.0",
+    "pillow>=10.2.0",
+]
+
+[project.scripts]
+diffdesk = "diffdesk.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/gowtham980/diffdesk"
+Repository = "https://github.com/gowtham980/diffdesk"
+Issues = "https://github.com/gowtham980/diffdesk/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/diffdesk"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

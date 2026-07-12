@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    <h2>Local store</h2>
+  </div>
+  <div class="card-body">
+    <p class="mt-0">Database path: <span class="mono">{{ db_path }}</span></p>
+    <p class="dim mb-0">Override with env <span class="mono">DIFFDESK_DB</span>. All data stays on this machine.</p>
+    <form method="post" action="/seed" class="mt-3 flex gap-2 wrap">
+      <button class="btn" type="submit">Load demo data (if empty)</button>
+    </form>
+    <form method="post" action="/seed" class="mt-3">
+      <input type="hidden" name="force" value="1" />
+      <button class="btn btn-warning btn-sm" type="submit">Force re-seed demo reviews</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Default checklist template</h2>
+    <span class="dim">Applied to new reviews</span>
+  </div>
+  <div class="card-body">
+    <form method="post" action="/settings/checklist" class="form-grid">
+      <div class="template-rows" id="template-rows">
+        {% for item in template %}
+        <div class="template-row">
+          <input type="text" name="category" value="{{ item.category }}" placeholder="category" required />
+          <input type="text" name="label" value="{{ item.label }}" placeholder="checklist question" required />
+        </div>
+        {% endfor %}
+      </div>
+      <div class="help">Edit categories/labels for AI-slop reviews. Empty rows are ignored on save if both blank — keep at least one.</div>
+      <div class="flex gap-2 wrap">
+        <button class="btn btn-ghost btn-sm" type="button" id="add-row">＋ Add row</button>
+        <button class="btn btn-primary" type="submit">Save template</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('add-row')?.addEventListener('click', function () {
+  var wrap = document.getElementById('template-rows');
+  var row = document.createElement('div');
+  row.className = 'template-row';
+  row.innerHTML = '<input type="text" name="category" placeholder="category" required />' +
+                  '<input type="text" name="label" placeholder="checklist question" required />';
+  wrap.appendChild(row);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="error-page card" style="padding:40px 24px">
+  <div class="code">{{ error_code or 500 }}</div>
+  <h2 style="margin:0 0 8px">{{ page_title or "Something went wrong" }}</h2>
+  <p class="muted">{{ error_message or "An unexpected error occurred." }}</p>
+  <div class="flex gap-2 wrap" style="justify-content:center; margin-top:20px">
+    <a class="btn btn-primary" href="/">Dashboard</a>
+    <a class="btn btn-ghost" href="/reviews">Reviews</a>
+  </div>
+</div>
+{% endblock %}

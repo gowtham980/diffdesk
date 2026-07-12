@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="filters card" method="get" action="/reviews" style="padding:14px">
+  <div class="field search">
+    <label for="q">Search</label>
+    <input id="q" type="search" name="q" value="{{ filter_q }}" placeholder="Title or summary…" />
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">All</option>
+      {% for s in statuses %}
+      <option value="{{ s }}" {% if filter_status == s %}selected{% endif %}>{{ s.replace('_',' ') }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="risk">Risk</label>
+    <select id="risk" name="risk">
+      <option value="">All</option>
+      {% for r in risks %}
+      <option value="{{ r }}" {% if filter_risk == r %}selected{% endif %}>{{ r }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field" style="flex:0; min-width:auto">
+    <label>&nbsp;</label>
+    <button class="btn btn-primary" type="submit">Filter</button>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-header">
+    <h2>{{ reviews|length }} review{{ '' if reviews|length == 1 else 's' }}</h2>
+    <a class="btn btn-primary btn-sm" href="/reviews/new">＋ New</a>
+  </div>
+  <div class="card-body" style="padding:0">
+    {% if reviews %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Risk</th>
+          <th>Source</th>
+          <th>Files</th>
+          <th>Findings</th>
+          <th>Checklist</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reviews %}
+        <tr>
+          <td>
+            <a class="row-title" href="/reviews/{{ r.id }}">{{ r.title }}</a>
+            {% if r.summary %}
+            <div class="dim" style="font-size:12px; max-width:360px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ r.summary }}</div>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status.replace('_',' ') }}</span></td>
+          <td><span class="badge badge-{{ r.risk }}">{{ r.risk }}</span></td>
+          <td><span class="badge badge-source">{{ r.source }}</span></td>
+          <td class="mono">{{ r.file_count }}</td>
+          <td class="mono">{{ r.finding_count }}</td>
+          <td class="mono">{{ r.checklist_done }}/{{ r.checklist_total }}</td>
+          <td class="dim" style="font-size:12px">{{ r.updated_at[:16].replace('T',' ') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">⌕</div>
+      <h3>No matching reviews</h3>
+      <p>Try clearing filters, or create a new review from an agent/PR diff.</p>
+      <a class="btn btn-primary" href="/reviews/new">New review</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+diff --git a/services/billing.py b/services/billing.py
+index 1111111..2222222 100644
+--- a/services/billing.py
++++ b/services/billing.py
+@@ -20,6 +20,12 @@ def charge(user_id: str, amount_cents: int) -> dict:
+     if amount_cents <= 0:
+         raise ValueError("amount must be positive")
++    # TODO: agent added retry without idempotency key
++    for attempt in range(3):
++        try:
++            return provider.charge(user_id, amount_cents)
++        except TemporaryError:
++            continue
+     return provider.charge(user_id, amount_cents)
+diff --git a/tests/test_billing.py b/tests/test_billing.py
+new file mode 100644
+index 0000000..3333333
+--- /dev/null
++++ b/tests/test_billing.py
+@@ -0,0 +1,5 @@
++from services.billing import charge
++
++def test_rejects_zero():
++    try:
++        charge("u1", 0)
++    except ValueError:
++        return
++    assert False, "expected ValueError"

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+{% if error %}
+<div class="alert alert-error" role="alert">{{ error }}</div>
+{% endif %}
+
+<div class="card" style="max-width:880px">
+  <div class="card-header">
+    <h2>Start a review session</h2>
+  </div>
+  <div class="card-body">
+    <form method="post" action="/reviews/new" class="form-grid">
+      <div>
+        <label for="title">Title *</label>
+        <input id="title" name="title" type="text" required maxlength="240"
+               value="{{ form.title if form is defined else '' }}"
+               placeholder="Agent: add caching layer" autofocus />
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="source">Source</label>
+          <select id="source" name="source">
+            {% set src = form.source if form is defined else 'agent' %}
+            {% for s in sources %}
+            <option value="{{ s }}" {% if src == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="risk">Risk</label>
+          <select id="risk" name="risk">
+            {% set rk = form.risk if form is defined else 'med' %}
+            {% for r in risks %}
+            <option value="{{ r }}" {% if rk == r %}selected{% endif %}>{{ r }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="summary">Summary</label>
+        <input id="summary" name="summary" type="text"
+               value="{{ form.summary if form is defined else '' }}"
+               placeholder="What the agent claimed it did…" />
+      </div>
+
+      <div>
+        <label for="diff_text">Unified diff / multi-file patch</label>
+        <textarea id="diff_text" name="diff_text" class="tall" placeholder="diff --git a/foo.py b/foo.py
+--- a/foo.py
++++ b/foo.py
+@@ -1,3 +1,4 @@
+ ...">{{ form.diff_text if form is defined else '' }}</textarea>
+        <div class="help">Paste output from <span class="mono">git diff</span>, GitHub patch, or agent tools. Empty is OK — you can still track a review session.</div>
+      </div>
+
+      <div class="flex gap-2 wrap">
+        <button class="btn btn-primary" type="submit">Create review</button>
+        <a class="btn btn-ghost" href="/reviews">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

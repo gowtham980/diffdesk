@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block topbar_title %}Review · {{ review.title }}{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn-ghost btn-sm" href="/reviews">← All reviews</a>
+<a class="btn btn-primary btn-sm" href="/reviews/new">＋ New</a>
+{% endblock %}
+
+{% block content %}
+<div class="review-meta">
+  <span class="badge badge-{{ review.status }}">{{ review.status.replace('_',' ') }}</span>
+  <span class="badge badge-{{ review.risk }}">risk {{ review.risk }}</span>
+  <span class="badge badge-source">{{ review.source }}</span>
+  <span class="dim mono">#{{ review.id }}</span>
+  <span class="dim">· {{ review.file_count }} file{{ '' if review.file_count == 1 else 's' }}</span>
+  <span class="dim">· checklist {{ review.checklist_done }}/{{ review.checklist_total }}</span>
+  <span class="dim">· {{ review.finding_count }} open finding{{ '' if review.finding_count == 1 else 's' }}</span>
+</div>
+
+{% if review.summary %}
+<p class="review-summary">{{ review.summary }}</p>
+{% endif %}
+
+<div class="decision-bar">
+  <form method="post" action="/reviews/{{ review.id }}/decision">
+    <input type="hidden" name="status" value="in_review" />
+    <button class="btn btn-sm" type="submit">Mark in review</button>
+  </form>
+  <form method="post" action="/reviews/{{ review.id }}/decision">
+    <input type="hidden" name="status" value="ship" />
+    <button class="btn btn-success btn-sm" type="submit">✓ Mark ship</button>
+  </form>
+  <form method="post" action="/reviews/{{ review.id }}/decision">
+    <input type="hidden" name="status" value="changes_requested" />
+    <button class="btn btn-warning btn-sm" type="submit">↻ Request changes</button>
+  </form>
+  <form method="post" action="/reviews/{{ review.id }}/decision">
+    <input type="hidden" name="status" value="archived" />
+    <button class="btn btn-ghost btn-sm" type="submit">Archive</button>
+  </form>
+</div>
+
+<div class="review-desk">
+  <!-- File list -->
+  <section class="panel" aria-label="Files">
+    <div class="panel-title">
+      <span>Files</span>
+      <span>{{ review.files|length }}</span>
+    </div>
+    <div class="panel-body">
+      {% if review.files %}
+      <ul class="file-list">
+        {% for f in review.files %}
+        <li>
+          <a href="/reviews/{{ review.id }}?file={{ f.id }}"
+             class="{% if selected_file and selected_file.id == f.id %}active{% endif %}">
+            <div class="path">{{ f.path }}</div>
+            <div class="meta">
+              <span>{{ f.language }}</span>
+              <span class="add">+{{ f.additions }}</span>
+              <span class="del">−{{ f.deletions }}</span>
+              <span>{{ f.status }}</span>
+            </div>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty-state" style="padding:28px 12px">
+        <h3 style="font-size:14px">No files parsed</h3>
+        <p style="font-size:12px">This review has no unified diff attached.</p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Diff panel -->
+  <section class="panel" aria-label="Diff">
+    {% if selected_file %}
+    <div class="diff-header">
+      <div>
+        <div class="path">{{ selected_file.path }}</div>
+        <div class="dim" style="font-size:12px">{{ selected_file.language }} · +{{ selected_file.additions }} / −{{ selected_file.deletions }}</div>
+      </div>
+      <form method="post" action="/files/{{ selected_file.id }}/status" class="flex gap-2">
+        <input type="hidden" name="review_id" value="{{ review.id }}" />
+        <select name="status" aria-label="File status">
+          {% for st in ['pending','reviewed','skipped'] %}
+          <option value="{{ st }}" {% if selected_file.status == st %}selected{% endif %}>{{ st }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-sm" type="submit">Update</button>
+      </form>
+    </div>
+    <div class="panel-body">
+      {% if diff_lines %}
+      <div class="diff-view" role="region" aria-label="Patch content">
+        {% for line in diff_lines %}
+        <div class="diff-line {{ line.type }}">
+          <span class="ln">{{ loop.index }}</span>
+          <span class="tx">{{ line.text }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <h3>Empty patch</h3>
+        <p>No content for this file.</p>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="panel-title"><span>Diff</span></div>
+    <div class="panel-body">
+      <div class="empty-state">
+        <div class="icon"> cons</div>
+        <h3>No file selected</h3>
+        <p>Attach a unified diff when creating a review to inspect changes here.</p>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- Checklist + findings -->
+  <div class="side-stack">
+    <section class="panel" id="checklist" aria-label="Checklist">
+      <div class="panel-title">
+        <span>AI checklist</span>
+        <span>{{ review.checklist_done }}/{{ review.checklist_total }}</span>
+      </div>
+      <div class="panel-body">
+        {% if review.checklist %}
+        <ul class="checklist">
+          {% for item in review.checklist %}
+          <li class="checklist-item">
+            <div class="cat">{{ item.category }}</div>
+            <div class="label">{{ item.label }}</div>
+            <form method="post" action="/reviews/{{ review.id }}/checklist/{{ item.id }}">
+              <select name="status" aria-label="Status for {{ item.category }}">
+                {% for st in ['todo','pass','fail','skip'] %}
+                <option value="{{ st }}" {% if item.status == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+              </select>
+              <input type="text" name="notes" value="{{ item.notes }}" placeholder="Notes…" />
+              <button class="btn btn-sm" type="submit">Save</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state" style="padding:24px">
+          <p>No checklist items.</p>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="panel" id="findings" aria-label="Findings">
+      <div class="panel-title">
+        <span>Findings</span>
+        <span>{{ review.findings|length }}</span>
+      </div>
+      <div class="panel-body">
+        {% if review.findings %}
+        <ul class="findings">
+          {% for f in review.findings %}
+          <li class="finding">
+            <div class="flex gap-2 wrap center">
+              <span class="badge badge-{{ f.severity }}">{{ f.severity }}</span>
+              <span class="badge badge-{{ f.status }}">{{ f.status }}</span>
+            </div>
+            <div class="title">{{ f.title }}</div>
+            {% if f.file_path %}<div class="path">{{ f.file_path }}</div>{% endif %}
+            {% if f.body %}<p class="body">{{ f.body }}</p>{% endif %}
+            <form method="post" action="/reviews/{{ review.id }}/findings/{{ f.id }}/status" class="flex gap-2">
+              <select name="status">
+                {% for st in ['open','resolved','wontfix'] %}
+                <option value="{{ st }}" {% if f.status == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-sm" type="submit">Update</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state" style="padding:20px 12px">
+          <p style="font-size:12px">No findings yet. Capture AI-slop issues as you review.</p>
+        </div>
+        {% endif %}
+      </div>
+      <form class="inline-form" method="post" action="/reviews/{{ review.id }}/findings">
+        <strong style="font-size:12px">Add finding</strong>
+        <input type="text" name="title" required placeholder="Short title *" />
+        <div class="form-row" style="grid-template-columns:1fr 1fr">
+          <select name="severity">
+            {% for s in ['info','low','med','high','critical'] %}
+            <option value="{{ s }}" {% if s == 'med' %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+          <input type="text" name="file_path" placeholder="file path"
+                 value="{{ selected_file.path if selected_file else '' }}" />
+        </div>
+        <textarea name="body" placeholder="Details…"></textarea>
+        <button class="btn btn-primary btn-sm" type="submit">Add finding</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid-stats">
+  <div class="stat">
+    <div class="label">Open</div>
+    <div class="value open">{{ stats.open_count }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">In review</div>
+    <div class="value">{{ stats.in_review_count }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">High risk</div>
+    <div class="value high">{{ stats.high_risk_count }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Ship</div>
+    <div class="value ship">{{ stats.ship_count }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Changes requested</div>
+    <div class="value warn">{{ stats.changes_requested_count }}</div>
+  </div>
+  <div class="stat">
+    <div class="label">Total</div>
+    <div class="value">{{ stats.total_count }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2>Recent activity</h2>
+    <div class="flex gap-2">
+      <form method="post" action="/seed">
+        <input type="hidden" name="force" value="0" />
+        <button class="btn btn-ghost btn-sm" type="submit">Load demo data</button>
+      </form>
+      <a class="btn btn-sm" href="/reviews">View all</a>
+    </div>
+  </div>
+  <div class="card-body" style="padding:0">
+    {% if stats.recent %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Review</th>
+          <th>Status</th>
+          <th>Risk</th>
+          <th>Source</th>
+          <th>Files</th>
+          <th>Checklist</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in stats.recent %}
+        <tr>
+          <td>
+            <a class="row-title" href="/reviews/{{ r.id }}">{{ r.title }}</a>
+            {% if r.finding_count %}
+            <div class="dim" style="font-size:12px">{{ r.finding_count }} open finding{{ 's' if r.finding_count != 1 else '' }}</div>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status.replace('_', ' ') }}</span></td>
+          <td><span class="badge badge-{{ r.risk }}">{{ r.risk }}</span></td>
+          <td><span class="badge badge-source">{{ r.source }}</span></td>
+          <td class="mono">{{ r.file_count }}</td>
+          <td>
+            <span class="mono">{{ r.checklist_done }}/{{ r.checklist_total }}</span>
+            {% set pct = (r.checklist_done / r.checklist_total * 100) if r.checklist_total else 0 %}
+            <div class="progress" style="width:80px"><span style="width:{{ pct }}%"></span></div>
+          </td>
+          <td class="dim" style="font-size:12px">{{ r.updated_at[:16].replace('T', ' ') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="icon"> cons</div>
+      <h3>No reviews yet</h3>
+      <p>Paste an agent or PR unified diff to start a structured AI-slop review with checklists and findings.</p>
+      <div class="flex gap-2 center wrap" style="justify-content:center">
+        <a class="btn btn-primary" href="/reviews/new">Create first review</a>
+        <form method="post" action="/seed">
+          <button class="btn btn-ghost" type="submit">Load demo data</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

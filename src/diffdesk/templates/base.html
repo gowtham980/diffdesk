@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ page_title or "diffdesk" }}{% endblock %} · diffdesk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">dd</div>
+        <div class="brand-text">
+          <strong>diffdesk</strong>
+          <span>AI review workspace</span>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="{% if active == 'dashboard' %}active{% endif %}">
+          <span class="nav-icon">◈</span> Dashboard
+        </a>
+        <a href="/reviews" class="{% if active == 'reviews' %}active{% endif %}">
+          <span class="nav-icon">☰</span> Reviews
+        </a>
+        <a href="/reviews/new" class="{% if active == 'new' %}active{% endif %}">
+          <span class="nav-icon">＋</span> New review
+        </a>
+        <a href="/settings" class="{% if active == 'settings' %}active{% endif %}">
+          <span class="nav-icon">⚙</span> Settings
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div>v{{ app_version }} · local-first</div>
+        <div class="dim">Keys: <span class="mono">n</span> new · <span class="mono">r</span> list · <span class="mono">d</span> home</div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <h1>{% block topbar_title %}{{ page_title or "diffdesk" }}{% endblock %}</h1>
+        <div class="topbar-actions">
+          {% block topbar_actions %}
+          <a class="btn btn-primary btn-sm" href="/reviews/new">＋ New review</a>
+          {% endblock %}
+        </div>
+      </header>
+      <main class="content">
+        {% if request.query_params.get('error') %}
+        <div class="alert alert-error" data-autohide role="alert">{{ request.query_params.get('error') }}</div>
+        {% endif %}
+        {% if request.query_params.get('saved') %}
+        <div class="alert alert-success" data-autohide role="status">Settings saved.</div>
+        {% endif %}
+        {% if request.query_params.get('seeded') %}
+        <div class="alert alert-success" data-autohide role="status">Demo data loaded.</div>
+        {% endif %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
