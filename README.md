@@ -59,6 +59,23 @@ Environment:
 |----------|---------|
 | `DIFFDESK_DB` | Override SQLite path (default `~/.diffdesk/diffdesk.db`) |
 
+
+
+## Paste a real git diff (happy path)
+
+```bash
+# from any git repo with changes vs main
+git diff main...HEAD > /tmp/agent.patch
+```
+
+Then open **New review** and paste the contents of `/tmp/agent.patch`.
+
+Tips:
+- Prefer unified diffs from `git diff`, `git show`, or GitHub `.patch` downloads.
+- Multi-file patches are split into the left file list automatically.
+- Empty diff still creates a checklist-only review session.
+- API alternative: `POST /api/reviews` with JSON field `diff_text`.
+
 ## Use Cases
 
 ### 1. After an agent PR lands in your tree
